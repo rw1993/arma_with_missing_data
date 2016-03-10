@@ -1,14 +1,20 @@
 # -*- coding:utf8 -*-
 import numpy
 
-
 class ARMA(object, ):
-
+    
 
     @property
-    def average_error(self):
-        return sum(self.noises) / float(len(self.xs))
+    def max_noise(self):
+        return max(map(abs, self.noises))
 
+    def average_error(self, other_xs, count):
+        sum_noise = 0.0
+        for x1, noise in zip(other_xs, self.noises):
+            if x1 != '*':
+                sum_noise += noise
+
+        return sum_noise / float(count)
 
     def __init__(self, alphas, betas, sigma):
         self.alphas = alphas
@@ -50,11 +56,5 @@ class ARMA(object, ):
 
 
 
-if __name__ == '__main__':
-    a = ARMA([0.6, -0.5, 0.4, -0.4, 0.3], [0.3, -0.2], 0.3)
-    print a.xs
-    print a.current_xs
-    print a.current_noises
-    print [a.generater.next() for i in range(10)] 
-    print a.average_error
-
+a = ARMA([0.6, -0.5, 0.4, -0.4, 0.3], [0.3, -0.2], 0.3)
+time_series = [a.generater.next() for i in range(2000)] 
