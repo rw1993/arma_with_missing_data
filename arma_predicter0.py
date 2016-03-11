@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+from dpark import DparkContext
 
 
 class ArmaPredicter(object,):
@@ -29,10 +30,14 @@ class ArmaPredicter(object,):
                 return
             else:
                 # predict x and append noise
-                rec_x = 0.0
-                rec_x = sum(map(lambda x:x[0]*x[1], 
-                                filter(lambda x:x[1]!=0,
-                                zip(self.ws, self.expand_xs))))
+                DC = DparkContext()
+                count = DC.accumulator(0)
+                def add_func(x):
+                    count.add(x[0]*x[1])
+
+                rdd = DC.parallelize(zip(self.ws, self.expand_xs), 10)
+                rdd.foreach(add_func)
+                rec_x = count.value
                 '''
                 for w, past_x in zip(self.ws, self.expand_xs):
                     if past_x == 0:
@@ -50,12 +55,19 @@ class ArmaPredicter(object,):
 
     def fit(self, y, x):
         #del_this_turn = [(y - x)*past_x for past_x in self.expand_xs]
-        del_this_turn = map(lambda past_x:(y-x)*past_x, self.expand_xs)
+        #del_this_turn = map(lambda past_x:(y-x)*past_x, self.expand_xs)
+        dc = DparkContext()
+        rdd = dc.parallelize([past_x for past_x in self.expand_xs], 10)
+        rdd = rdd.map(lambda past_x:(y-x)*past_x)
         self.learning_rate = 1 / (float(self.F)**0.5)
+        del_this_turn = rdd.collect()
         def new_del_(x):
             return x[0]+x[1]
-
-        self.del_ = map(new_del_, zip(self.del_, del_this_turn))
+        dc0 = DparkContext()
+        rdd0 = dc0.parallelize(zip(self.del_, del_this_turn), 10)
+        rdd0 = rdd0.map(new_del_)
+        self.del_ = rdd0.collect()
+        #self.del_ = map(new_del_, zip(self.del_, del_this_turn))
         del_sum = reduce(lambda x,y:x+y**2, self.del_)**0.5
         divide = max(1, self.learning_rate*del_sum*(2**(-self.d/2)))
         self.ws = map(lambda x:-self.learning_rate*x/divide, self.del_)

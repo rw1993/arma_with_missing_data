@@ -1,15 +1,23 @@
-from arma import *
-from arma_predicter import *
+from arma import ARMA
+from arma_predicter0 import *
 import random
+import pickle
+import sys
 
+
+missing_percent = 0.1
+a = ARMA([0.6, -0.5, 0.4, -0.4, 0.3], [0.3 -0.2], 0.3)
+time_series = [a.generater.next() for i in range(2000)]
 p = ArmaPredicter(10, a.max_noise)
 
-for index, x in enumerate(time_series):
-    if random.random() > 0.2:
-        p.predict_and_fit(x)
-    else:
-        p.predict_and_fit('*')
-    print index
-    print p.average_error, a.average_error(p.xs, p.F)
+def run_test():
+    for index, x in enumerate(time_series):
+        if random.random() > missing_percent:
+            p.predict_and_fit(x)
+        else:
+            p.predict_and_fit('*')
+    with open("errors", "wb") as f:
+        pickle.dump(p.errors, f)
 
-
+if __name__ == '__main__':
+    run_test()

@@ -12,7 +12,7 @@ class ARMA(object, ):
         sum_noise = 0.0
         for x1, noise in zip(other_xs, self.noises):
             if x1 != '*':
-                sum_noise += noise
+                sum_noise += abs(noise)
 
         return sum_noise / float(count)
 
