@@ -1,8 +1,8 @@
 # -*- coding:utf8 -*-
+import dpark
 
 
 class ArmaPredicter(object,):
-    
 
     @property
     def average_error(self):
@@ -45,7 +45,6 @@ class ArmaPredicter(object,):
     def fit(self, y, x):
         del_this_turn = [(y - x)*past_x for past_x in self.expand_xs]
         self.learning_rate = 1.0 / (float(self.F)**0.5)
-        #self.learning_rate = 0.03
         def new_del_(x):
             return x[0]+x[1]
         self.del_ = map(new_del_, zip(self.del_, del_this_turn))
@@ -72,4 +71,6 @@ class ArmaPredicter(object,):
                         return 0
             return xs[-1]
 
-        self.expand_xs = [add(i) for i in range(1, 2**(self.d)-1)]
+        rdd = dpark.parallelize([i for i in range(2**self.d-1)], 10)
+        rdd = rdd.map(add)
+        self.expand_xs = rdd.collect()

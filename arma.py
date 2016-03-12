@@ -24,7 +24,7 @@ class ARMA(object, ):
         self.generater = self.generate_data()
 
     def init_first_few_xs(self):
-        self.xs = [1 for alpha in self.alphas]
+        self.xs = [0 for alpha in self.alphas]
         self.noises = [self.noise() for alpha in self.alphas]
 
     @property
