@@ -20,12 +20,12 @@ class ARMA(object, ):
         self.alphas = alphas
         self.betas = betas
         self.sigma = sigma
-        self.init_first_few_ys()
+        self.init_first_few_xs()
         self.generater = self.generate_data()
 
-    def init_first_few_ys(self):
-        self.xs = [self.noise() for alpha in self.alphas]
-        self.noises = self.xs
+    def init_first_few_xs(self):
+        self.xs = [1 for alpha in self.alphas]
+        self.noises = [self.noise() for alpha in self.alphas]
 
     @property
     def current_xs(self):
@@ -50,11 +50,16 @@ class ARMA(object, ):
             for beta, noise in zip(self.betas, self.current_noises):
                 sum_ma += beta * noise
 
-            self.xs.append(sum_ar+sum_ma)
-            self.noises.append(sum_ma)
-            yield sum_ar+sum_ma
+            n = self.noise()
+            x = sum_ar + sum_ma +n
+
+            self.xs.append(x)
+            self.noises.append(n)
+            yield x
 
 
 
-a = ARMA([0.6, -0.5, 0.4, -0.4, 0.3], [0.3, -0.2], 0.3)
-time_series = [a.generater.next() for i in range(2000)] 
+#a = ARMA([0.6, -0.5, 0.4, -0.4, 0.3], [0.3, -0.2], 0.3)
+a = ARMA([0.3, -0.4, 0.4, -0.5, 0.6], [-0.2, -0.3], 0.3)
+time_series = [a.generater.next() for i in range(2000)]
+print time_series[-1]

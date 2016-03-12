@@ -8,7 +8,7 @@ class ArmaPredicter(object,):
     def average_error(self):
         return sum(self.errors)/float(len(self.errors))
 
-    def __init__(self, p, max_noise, learning_rate=1.0, missing_ability=1.5):
+    def __init__(self, p, max_noise, missing_ability=1.5):
         #p = m + k p = 10
         self.p = p
         self.d = int(missing_ability * p) # more we choose, righter we get but slower
@@ -16,7 +16,6 @@ class ArmaPredicter(object,):
         self.xs = []
         self.errors = []
         self.max_noise = max_noise
-        self.learning_rate = learning_rate
         self.del_ = [0 for i in range(self.d**2-1)]
      
     def predict_and_fit(self, x):
@@ -25,23 +24,18 @@ class ArmaPredicter(object,):
             self.xs.append(x)
             self.errors.append(self.max_noise)
         else:
+            self._expand_xs()
             if x == '*':
                 return
             else:
                 # predict x and append noise
                 rec_x = 0.0
-                rec_x = sum(map(lambda x:x[0]*x[1], 
-                                filter(lambda x:x[1]!=0,
-                                zip(self.ws, self.expand_xs))))
-                '''
                 for w, past_x in zip(self.ws, self.expand_xs):
-                    if past_x == 0:
-                        continue
                     rec_x += w * past_x
-                '''
                 self.errors.append(abs(rec_x-x))
             self.fit(rec_x, x)
             self.xs.append(x)
+            return rec_x
 
     @property
     def F(self):
@@ -49,38 +43,32 @@ class ArmaPredicter(object,):
 
 
     def fit(self, y, x):
-        #del_this_turn = [(y - x)*past_x for past_x in self.expand_xs]
-        del_this_turn = map(lambda past_x:(y-x)*past_x, self.expand_xs)
-        self.learning_rate = 1 / (float(self.F)**0.5)
+        del_this_turn = [(y - x)*past_x for past_x in self.expand_xs]
+        self.learning_rate = 1.0 / (float(self.F)**0.5)
         def new_del_(x):
             return x[0]+x[1]
-
         self.del_ = map(new_del_, zip(self.del_, del_this_turn))
         del_sum = reduce(lambda x,y:x+y**2, self.del_)**0.5
         divide = max(1, self.learning_rate*del_sum*(2**(-self.d/2)))
         self.ws = map(lambda x:-self.learning_rate*x/divide, self.del_)
 
-    @property
-    def expand_xs(self):
-        past_d_xs = self.xs[-self.d:]
+    def _expand_xs(self):
+        past_xs = self.xs[-self.d:][::-1]
 
         def n_to_b(n):
-            b = [0 for i in range(self.d)]
             string = bin(n)[2:]
-            b_s = [int(s) for s in string]
-            for index, s in enumerate(b_s):
-                b[index] = s
-            return b
+            b_s = [int(s) for s in string][::-1]
+            return b_s
 
         def add(n):
-            b = n_to_b(n)
-            xs = reversed(past_d_xs)
-            rt = 0
-            for i, x in zip(b, xs):
-                if i <= (x != '*'):
-                    return 0
-                else:
-                    if i == 1:
-                        rt = x
-            return rt
-        return [add(i) for i in range(1, 2**(self.d)-1)]
+            b_s = n_to_b(n)
+            xs = [past_x for past_x, i in zip(past_xs, b_s)]
+            if xs[-1] == '*':
+                return 0
+            else:
+                for i, x in zip(b_s, xs)[:-1]:
+                    if i < (x != '*'):
+                        return 0
+            return xs[-1]
+
+        self.expand_xs = [add(i) for i in range(1, 2**(self.d)-1)]
