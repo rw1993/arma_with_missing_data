@@ -8,7 +8,7 @@ class ArmaPredicter(object,):
     def average_error(self):
         return sum(self.errors)/float(len(self.errors))
 
-    def __init__(self, p, max_noise, missing_ability=1.5):
+    def __init__(self, p, max_noise, missing_ability=2):
         #p = m + k p = 10
         self.p = p
         self.d = int(missing_ability * p) # more we choose, righter we get but slower
@@ -71,6 +71,6 @@ class ArmaPredicter(object,):
                         return 0
             return xs[-1]
 
-        rdd = dpark.parallelize([i for i in range(2**self.d-1)], 10)
+        rdd = dpark.parallelize([i for i in range(2**self.d-1)], 5)
         rdd = rdd.map(add)
         self.expand_xs = rdd.collect()
