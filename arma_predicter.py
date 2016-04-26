@@ -45,7 +45,7 @@ class ArmaPredicter(object,):
     def fit(self, y, x):
         del_this_turn = [(y - x)*past_x for past_x in self.expand_xs]
         self.learning_rate = 1.0 / (float(self.F)**0.5)
-        #self.learning_rate = 0.03
+        #self.learning_rate = 0.003
         def new_del_(x):
             return x[0]+x[1]
         self.del_ = map(new_del_, zip(self.del_, del_this_turn))

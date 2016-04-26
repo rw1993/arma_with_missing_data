@@ -12,7 +12,7 @@ class ArmaPredicter(object,):
         self.errors = []
         self.max_noise = max_noise
         self.predict_xs =[0.0]
-        self.learning_rate = learning_rate
+        self._learning_rate = learning_rate
 
     def predict_and_fit(self, x):
         if len(self.xs) <= self.d:
@@ -32,6 +32,11 @@ class ArmaPredicter(object,):
         old_x = self.predict_xs[-1]
         new_x = old_x - self.learning_rate * self.Err * self.K
         self.predict_xs.append(new_x)
+
+    @property
+    def learning_rate(self):
+        return self._learning_rate
+        
 
     @property
     def Err(self):

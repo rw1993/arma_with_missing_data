@@ -8,7 +8,7 @@ class ArmaPredicter(object,):
     def average_error(self):
         return sum(self.errors)/float(len(self.errors))
 
-    def __init__(self, p, max_noise, missing_ability=2):
+    def __init__(self, p, max_noise, missing_ability=3):
         #p = m + k p = 10
         self.p = p
         self.d = int(missing_ability * p) # more we choose, righter we get but slower
