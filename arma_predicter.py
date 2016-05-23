@@ -23,10 +23,12 @@ class ArmaPredicter(object,):
             # 对于前几个数据,不加预测 
             self.xs.append(x)
             self.errors.append(self.max_noise)
+            return 0
         else:
             self._expand_xs()
             if x == '*':
-                return
+                self.errors.append(0)
+                return 0
             else:
                 # predict x and append noise
                 rec_x = 0.0

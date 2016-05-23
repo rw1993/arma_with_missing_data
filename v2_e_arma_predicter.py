@@ -20,21 +20,24 @@ class ArmaPredicter(object,):
     def predict_and_fit(self, x):
         if len(self.xs) < self.d:
             self.xs.append(x)
-            self.predict_xs.append(0.0)
-            #self.errors.append(self.max_noise)
-            self.errors.append(x)
-            return
+            #self.predict_xs.append(0.0)
+            self.errors.append(self.max_noise)
+            self.errors.append(0)
+            return 0
         else:
             self.xs.append(x)
             if x == '*':
                 self.tmp = 0
                 self.ERRs.append(0)
-                return
+                self.errors.append(0)
+                return 0
+            p_x = self.predict_xs[-1]
             error = self.predict_xs[-1] - x
             self.errors.append(abs(error))
             self.ERRs.append(error)
             self.d_kernel += error * self.tmp
             self.predict()
+            return p_x
 
     def predict(self):
         predict_x = 0
